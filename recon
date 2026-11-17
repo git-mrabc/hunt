@@ -1,0 +1,58 @@
+Run Subfinder (if you haven’t already):
+      subfinder -d example.com -silent -o subs.txt
+or with more sources
+   subfinder -d example.com -all -silent -o subs.txt
+   
+Check for alive hosts with httpx:
+      cat subs.txt | httpx -silent -o alive.txt
+   
+   Or in one line:
+      subfinder -d example.com -silent | httpx -silent -o alive.txt
+
+Recommended Useful Flags for httpx
+
+cat subs.txt | httpx -silent -status-code -title -tech-detect -follow-redirects -o alive.txt
+
+-status-code / -sc → shows HTTP status (200, 301, 403, etc.)
+-title → page title
+-tech-detect / -td → detects technologies
+-follow-redirects → follows redirects
+-threads 50 (or higher) → speed it up
+-timeout 5 → adjust timeout if needed
+-rl 10 → rate-limit (good for polite scanning)
+
+Example richer output:
+httpx -l subs.txt -silent -sc -title -td -o live_hosts.txt
+
+Optional: First Resolve DNS (with dnsx)
+
+If you only want hosts that resolve (before checking web response):
+
+cat subs.txt | dnsx -silent -a -resp -o resolved.txt
+cat resolved.txt | httpx -silent -o alive.txt
+
+Or combined:
+subfinder -d example.com -silent | dnsx -silent | httpx -silent -sc -title -o alive.txt
+
+Installation (if needed)
+
+Both tools are from ProjectDiscovery:
+
+go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
+go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@latest
+
+Make sure ~/go/bin is in your $PATH.
+
+Quick One-Liner Script Example
+
+#!/bin/bash
+DOMAIN=$1
+subfinder -d $DOMAIN -silent -o subs_$DOMAIN.txt
+cat subs_$DOMAIN.txt | httpx -silent -status-code -title -o live_$DOMAIN.txt
+echo "Live hosts saved to live_$DOMAIN.txt"
+
+
+nano simple_recon.sh
+chmod +x simple_recon.sh
+./simple_recon.sh example.com
