@@ -1,0 +1,85 @@
+
+
+Create in-scope list (example)
+nano inscope.txt
+
+Paste something like this (one pattern per line):
+
+*.target.com
+api.target.com
+app.target.com
+admin.target.com
+
+Create out-of-scope list (optional but useful)
+nano outscope.txt
+
+blog.target.com
+shop.target.com
+status.target.com
+*.thirdparty.com
+
+3. Filter Alive Domains (Best Method)
+
+Assuming your alive domains are in live_target.com.txt:
+
+Method A: Simple & Effective (Recommended)
+
+Keep only In-Scope domains
+cat live_target.com.txt | grep -E '\.target\.com' | tee inscope_live.txt
+
+Or more precise:
+
+cat live_target.com.txt | grep -iE '(^|\.)target\.com' > inscope_live.txt
+
+Method B: Using a proper scope checker (better for wildcards)
+
+Install a helpful tool:
+
+go install github.com/tomnomnom/hacks/filter-scope@latest
+
+Then:
+
+cat live_target.com.txt | filter-scope inscope.txt > inscope_live.txt
+
+4. Clean Version (Remove http/https)
+
+Many people prefer only the domain names:
+
+cat live_target.com.txt | sed 's|https\?://||' | sed 's|/.*||' > clean_live.txt
+
+Then filter:
+
+cat clean_live.txt | grep -E '\.target\.com$' > inscope_domains.txt
+
+5. Full Practical Command (One-liner)
+
+cat live_$DOMAIN.txt | sed 's|https\?://||; s|/.*||' | grep -E '\.target\.com$' | tee inscope_live.txt
+
+Bonus: Automatic Separation Script
+
+You can create this small script:
+
+nano filter_scope.sh
+
+Paste:
+
+#!/bin/bash
+
+ALIVE=$1
+INSCOPE="inscope.txt"
+
+echo "[+] Filtering In-Scope domains..."
+cat $ALIVE | sed 's|https\?://||; s|/.||' | grep -Ef <(sed 's/\./\\./g; s/\/.*/g' $INSCOPE) | tee inscope_live.txt
+
+echo "[+] Done! In-scope live domains saved to inscope_live.txt"
+
+Make it executable and run:
+
+chmod +x filter_scope.sh
+./filter_scope.sh live_target.com.txt
+
+Would you like me to give you a complete improved script that does:
+
+Subfinder → httpx → Filter In-Scope automatically?
+
+Just tell me the target domain pattern (example: *.example.com) and I’ll write the full script for you.
